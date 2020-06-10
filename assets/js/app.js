@@ -1,3 +1,12 @@
+// contentfull API 
+const client = contentful.createClient({
+    // This is the space ID. A space is like a project folder in Contentful terms
+    space: "pd3wmi0eh1d4",
+    // This is the access token for this space. Normally you get both ID and the token in the Contentful web app
+    accessToken: "YemZsbG_gER5X5UsbKCuk95n1KFkY8rUsYb_QQpKCuo"
+  });
+
+//DOM variables
 
 const cartBtn = document.querySelector('.cart-btn');
 const closeCartBtn = document.querySelector('.close-cart');
@@ -19,12 +28,15 @@ let buttonsDOM = [];
 class Products {
     async getProducts() {
         try {            
+            let contentful = await client.getEntries({
+                content_type: "MeuMundoMimo"
+            });              
             // puxa o json 
-            let result = await fetch('./assets/js/products.json');
+            // let result = await fetch('./assets/js/products.json');
             // transforma o json
-            let data = await result.json();
+            // let data = await result.json();
             // destrincha o json 
-            let products = data.items;
+            let products = contentful.items;
             // metodo map organiza dados do json
             products = products.map(item => {
                 const { title, price } = item.fields;
@@ -109,9 +121,9 @@ class UI {
             <span class="remove-item" data-id=${item.id}>Excluir</span>
         </div>
         <div class="">
-            <fas class="fa-chevron-up" data-id=${item.id}></fas>
+            <fas class="fa-chevron-up increase-item" data-id=${item.id}></fas>
             <p class="item-amount">${item.amount}</p>
-            <fas class="fa-chevron-down" data-id=${item.id}></fas>
+            <fas class="fa-chevron-down decrease-item" data-id=${item.id}></fas>
         </div>
         `;
         cartContent.appendChild(div);
@@ -137,7 +149,61 @@ class UI {
         cartDOM.classList.remove('showCart');
     }
     cartLogic() {
-        
+        clearCartBtn.addEventListener('click', () => {this.clearCart()});
+        cartContent.addEventListener('click', event => {
+            if(event.target.classList.contains('remove-item')) {
+                let removeItem = event.target;
+                let id = removeItem.dataset.id;
+                cartContent.removeChild(removeItem.parentElement.parentElement)
+                this.removeItem(id);
+            }
+            else if(event.target.classList.contains('increase-item')) {
+                let addAmount = event.target;
+                let id = addAmount.dataset.id;
+                let tempItem = cart.find(item => item.id === id);
+                tempItem.amount = tempItem.amount + 1;
+                Storage.saveCart(cart);
+                this.setCartValues(cart);
+                addAmount.nextElementSibling.innerText = tempItem.amount;
+            }
+            else if(event.target.classList.contains('decrease-item')) {
+                let lowerAmount = event.target;
+                let id = lowerAmount.dataset.id;
+                let tempItem = cart.find(item => item.id === id);
+                tempItem.amount = tempItem.amount - 1;
+                if(tempItem.amount > 0) {
+                    Storage.saveCart(cart);
+                    this.setCartValues(cart);
+                    lowerAmount.previousElementSibling.innerText = tempItem.amount;
+                }
+                else {
+                    cartContent.removeChild(lowerAmount.parentElement.parentElement)
+                    this.removeItem(id);
+                }                
+            }
+            
+        })
+    }
+    clearCart() {
+        let cartItems = cart.map(item => item.id);
+        cartItems.forEach(id => this.removeItem(id));
+        while(cartContent.children.length > 0) {
+            cartContent.removeChild(cartContent.children[0]);
+        }
+        this.hideCart();
+    } 
+    removeItem(id) {
+        cart = cart.filter(item => item.id !== id);
+        this.setCartValues(cart);
+        Storage.saveCart(cart);
+        let button = this.getSingleButton(id);
+        button.disabled = false;
+        button.innerHTML = `
+            <i class="fas fa-shopping-cart"></i> Incluir no Carrinho
+        `
+    }
+    getSingleButton(id) {
+        return buttonsDOM.find(button => button.dataset.id === id);
     }
 }
 

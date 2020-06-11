@@ -28,12 +28,14 @@ let buttonsDOM = [];
 class Products {
     async getProducts() {
         try {            
-            let contentful = await client.getEntries({
-                content_type: "MeuMundoMimo"
-            });     
+            let contentful = await client.getEntries(
+                {
+                content_type: "MeuMundoMimo" 
+            }
+            );     
             console.log(contentful);         
             // puxa o json 
-            let result = await fetch('./assets/js/products.json');
+            // let result = await fetch('./assets/js/products.json');
             // transforma o json
             // let data = await result.json();
             // destrincha o json 
@@ -45,7 +47,7 @@ class Products {
                 const { title, price } = item.fields;
                 const { id } = item.sys;
                 // const { image } = item.fields.file.url;
-                const { image } = item.fields.image.fields.file.url;
+                const image = item.fields.image .fields.file.url;
                 return { title, price, id, image };
             })
             return products;

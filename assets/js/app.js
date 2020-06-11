@@ -30,17 +30,21 @@ class Products {
         try {            
             let contentful = await client.getEntries({
                 content_type: "MeuMundoMimo"
-            });              
+            });     
+            console.log(contentful);         
             // puxa o json 
-            // let result = await fetch('./assets/js/products.json');
+            let result = await fetch('./assets/js/products.json');
             // transforma o json
             // let data = await result.json();
             // destrincha o json 
+            // let products = data.items;
             let products = contentful.items;
+
             // metodo map organiza dados do json
             products = products.map(item => {
                 const { title, price } = item.fields;
                 const { id } = item.sys;
+                // const { image } = item.fields.file.url;
                 const { image } = item.fields.image.fields.file.url;
                 return { title, price, id, image };
             })
